@@ -1,25 +1,19 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { thorify } from 'thorify';
+import MetaCoin from './build/contracts/MetaCoin.json';
+
+const Web3 = require('web3');
+const web3 = thorify(new Web3(), 'http://localhost:8669');
+const MetaCoinContract = new web3.eth.Contract(MetaCoin.abi)
+
+console.log(MetaCoinContract);
+
 
 class App extends Component {
   render() {
     return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-        </header>
+      <div>
+      Hello World!
       </div>
     );
   }
