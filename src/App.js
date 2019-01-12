@@ -4,9 +4,22 @@ import TaskList from './build/contracts/TaskList.json';
 
 const Web3 = require('web3');
 const web3 = thorify(new Web3(), 'http://localhost:8669');
-const TaskListContract = new web3.eth.Contract(TaskList.abi)
+const account = web3.eth.accounts.create();
+const TaskListContract = new web3.eth.Contract(TaskList.abi, account.address)
 
-console.log(TaskListContract);
+account.signTransaction({
+  gas: 50
+}, account.privateKey).then(result => console.log(result))
+
+
+// account.sendSignedTransaction()
+
+web3.eth.accounts.wallet.add(account.privateKey)
+
+
+// web3.eth.sendTransaction({
+//   from: account.address
+// }).then(ret => console.log(ret))
 
 class App extends Component {
   constructor(props) {
@@ -17,27 +30,30 @@ class App extends Component {
     };
   }
 
-  // async componentDidMount() {
-  //   await TaskListContract.methods.getTask().call;
-  // };
+  async componentDidMount() {
+    const task = await TaskListContract.methods.getTask().call();
 
-  onFormSubmit = (e) => {
+    this.setState({ task })
+  };
+
+  onFormSubmit = async (e) => {
     e.preventDefault();
-    
     const task = e.target.elements.task.value;
 
-    if (task) {
-      this.setState({ task });
-      e.target.elements.task.value = '';
-    }
+    await TaskListContract.methods.setTask(task).send({
+      from: account.address
+    })
   };
 
   render() {
     return (
-      <form onSubmit={this.onFormSubmit}>
-        <input type="text" name="task"/>
-        <button>Add Task</button> 
-      </form>
+      <div>
+        <form onSubmit={this.onFormSubmit}>
+          <input type="text" name="task"/>
+          <button>Add Task</button> 
+        </form>
+      </div>
+      
     );
   }
 }
