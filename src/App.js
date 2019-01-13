@@ -33,21 +33,18 @@ class App extends Component {
     const getSignedTransaction = async (transaction) => {
       let signedTransaction = await account
         .signTransaction(
-          { ...transaction, gas: '50' },
+          { data: transaction },
           account.privateKey
         )
         .then(result => result.rawTransaction);
       submitSignedTransaction(signedTransaction)
-      console.log(signedTransaction)
     };
     
-    const onFormSubmit = async (e) => {
+    const onFormSubmit = (e) => {
       e.preventDefault();
       const task = e.target.elements.task.value;
       try {
-        const transaction = await TaskListContract.methods.setTask(task).send({
-          from: account.address
-        })
+        const transaction = TaskListContract.methods.setTask(task).encodeABI()
         getSignedTransaction(transaction)
       } catch (err) {
         console.log(err)
