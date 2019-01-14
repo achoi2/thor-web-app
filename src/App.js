@@ -5,10 +5,12 @@ import './App.css';
 
 const Web3 = require('web3');
 const web3 = thorify(new Web3(), 'http://localhost:8669');
-const account = web3.eth.accounts.create();
-const TaskListContract = new web3.eth.Contract(TaskList.abi, account.address)
+// const account = web3.eth.accounts.create();
+const privateKey = process.env.REACT_APP_PRIVATE_KEY;
+const address = process.env.REACT_APP_ADDRESS;
+const TaskListContract = new web3.eth.Contract(TaskList.abi, address);
 web3.eth.accounts.wallet.add(
-    account.privateKey
+    privateKey
 );
 
 class App extends Component {
@@ -18,41 +20,32 @@ class App extends Component {
     this.state = {
       task: ''
     };
-  }
+  };
 
   async componentDidMount() {
-    const task = await TaskListContract.methods.getTask().call();
-
-    this.setState({ task })
+    let task = await TaskListContract.methods.getTask().call().then(result=> console.log(result));
+     this.setState({ task });
   };
 
   render() {
-    const submitSignedTransaction = async (transaction) => {
-      await web3.eth.sendSignedTransaction(transaction)
-    };
-
-    const getSignedTransaction = async (transaction) => {
-      let signedTransaction = await account
-        .signTransaction(
-          { data: transaction },
-          account.privateKey
-        )
-        .then(result => result.rawTransaction);
-      submitSignedTransaction(signedTransaction)
-    };
-    
-    const onFormSubmit = (e) => {
+    const onFormSubmit = async (e) => {
       e.preventDefault();
       const task = e.target.elements.task.value;
-      try {
-        const transaction = TaskListContract.methods.setTask(task).encodeABI()
-        getSignedTransaction(transaction)
-        e.target.elements.task.value = '';
-      } catch (err) {
-        console.log(err)
-      }
+
+      let transaction = await TaskListContract.methods.setTask(task).send({
+        from: address
+      });
+
+      let tx = {
+        to: address,
+        transaction
+      };
+
+      web3.eth.accounts.signTransaction(tx,
+          privateKey)
+        .then(signed => web3.eth.sendSignedTransaction(signed.rawTransaction).on('receipt', console.log))
     };
-    
+
     return (
       <div className="App">
         <div className="Form-Container">
@@ -64,10 +57,7 @@ class App extends Component {
           <h3>Your task is {this.state.task}</h3>
         </div>
       </div>
-      
-      
     );
-    
   }
 }
 
