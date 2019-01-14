@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { thorify } from 'thorify';
 import TaskList from './build/contracts/TaskList.json';
+import './App.css';
 
 const Web3 = require('web3');
 const web3 = thorify(new Web3(), 'http://localhost:8669');
@@ -46,18 +47,24 @@ class App extends Component {
       try {
         const transaction = TaskListContract.methods.setTask(task).encodeABI()
         getSignedTransaction(transaction)
+        e.target.elements.task.value = '';
       } catch (err) {
         console.log(err)
       }
     };
     
     return (
-      <div>
-        <form onSubmit={onFormSubmit}>
-          <input type="text" name="task"/>
-          <button>Add Task</button> 
-        </form>
+      <div className="App">
+        <div className="Form-Container">
+          <h2>Add a task</h2>
+          <form onSubmit={onFormSubmit}>
+            <input type="text" name="task"/>
+            <button className="button">Add</button> 
+          </form>
+          <h3>Your task is {this.state.task}</h3>
+        </div>
       </div>
+      
       
     );
     
